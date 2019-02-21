@@ -94,7 +94,7 @@ Teting Dropbox
 
 ---
 
-# Available resources
+# Available talks
 
 - Testing basic data scructures
 --
@@ -139,7 +139,27 @@ Teting Dropbox
 # Coming up with properties
 
 ```Elixir
-forall list <- list(ingeger())
+forall list <- list(any())
+
+  Enum.at(list,  ) == Enum.at(reverse(list),                 )
+```
+
+---
+
+# Coming up with properties
+
+```Elixir
+forall list <- list(any())
+forall k <- range(0, length(list) - 1)
+  Enum.at(list,  ) == Enum.at(reverse(list),                 )
+```
+
+---
+
+# Coming up with properties
+
+```Elixir
+forall list <- list(any())
 forall k <- range(0, length(list) - 1)
   Enum.at(list, k) == Enum.at(reverse(list), length(list) - k)
 ```
