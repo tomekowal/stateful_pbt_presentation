@@ -94,6 +94,24 @@ Teting Dropbox
 
 ---
 
+# Available resources
+
+- Testing basic data scructures
+--
+
+- ?
+--
+
+- ?
+--
+
+- ?
+--
+
+- Epic success stories
+
+---
+
 # Agenda
 
 - Coming up with properties
@@ -220,13 +238,13 @@ end
 - YYMMDDZZZXQ
 --
 
-- 90010112345
+- <span style="color:red">YYMMDD</span>ZZZXQ <span style="color:red">90 01 01</span> 12345
 --
 
-- born: 01-01-1990
+- YYMMDD<span style="color:red">ZZZX</span>Q 900101 <span=style:"color:red">1234</span> 5
 --
 
-- even Xs for females, odd Xs for males
+- even Xs for females, odd Xs for males 900101 123 <span style="color:red">4</span> 5
 --
 
 - Q is a check digit
@@ -235,7 +253,7 @@ end
 - Caveat: for people born after 2000 we add 20 to month
 --
 
-- 05210112345 means "born 01-01-2005"
+- 05<span style="color:red">21</span>0112345 means "born 01-01-2005"
 
 ---
 
@@ -273,8 +291,56 @@ class: middle
 
 ```Elixir
 def command(_state) do
+  oneof([                                      ,
+                                                                       ])
+end
+```
+
+---
+
+# Commands
+
+```Elixir
+def command(_state) do
+  oneof([{:call, PatientDB, :search, [pesel()]},
+                                                                       ])
+end
+```
+
+---
+
+# Commands
+
+```Elixir
+def command(_state) do
   oneof([{:call, PatientDB, :search, [pesel()]},
          {:call, PatientDB, :add_patient, [pesel(), name(), surname()]}])
+end
+```
+
+---
+
+# next_state
+
+```Elixir
+def next_state(state, {:search, [pesel]}) do
+
+end
+def next_state(state,                                       ) do
+
+end
+```
+
+---
+
+# next_state
+
+```Elixir
+def next_state(state, {:search, [pesel]}) do
+  state
+end
+def next_state(state,                                       ) do
+
 end
 ```
 
@@ -311,13 +377,19 @@ Did it work?
 
 # Naive execution
 
-```Elixir
-search(p1)
-add(p2, name1, surname1)
-search(p3)
-add(p4, name2, surname2)
-...
-```
+- search(<span style="color: red">p1</span>)
+--
+
+- add(<span style="color: red">p2</span>, name1, surname1)
+--
+
+- search(<span style="color: red">p3</span>)
+--
+
+- add(<span style="color: red">p4</span>, name2, surname2)
+--
+
+- ...
 
 ---
 
@@ -343,7 +415,24 @@ def command(state) do
   oneof([...
          {:call, 
           Patients, :search_existing,
-          [oneof(Map.keys(state)]}, ...])
+          [                     ]},
+         ...
+        ])
+end
+```
+
+---
+
+# Using state in generator
+
+```Elixir
+def command(state) do
+  oneof([...
+         {:call, 
+          Patients, :search_existing,
+          [oneof(Map.keys(state)]},
+         ...
+        ])
 end
 ```
 
@@ -397,35 +486,9 @@ end
 
 ---
 
-# Summing up: command generation
-
-- Pick a command
-- if precondition met - call next_state
-- else pick another command
-
----
-
-# Summing up: Test execution
-
-- Run a command
-- if postcondition not met - fail the test
-- if postcondition met - call next_state and take next command
-
----
-
-# Summing up: Shrinking
-
-- Take out a command
-- Make sure all preconditions are still valid (this doesn’t touch actual system)
-- Run the property on actual system
-- If still failing – continue shrkinking
-- If not – backtrack and try taking out something else
-
----
-
 # Phases
 
-- Call generation: uses only model, needs to be deterministic, depends on precondition
+- Command generation: uses only model, needs to be deterministic, depends on precondition
 - Test execution uses generated calls with intermediate states for validations, depends more on postcondition
 - Shrinking executes the property many times with smaller examples: uses preconditions to make sure taking out commands makes sense
 
@@ -434,7 +497,7 @@ end
 # Summary
 
 - Epic success stories
-- quite big upfront investment
+- Considerable upfront investment
 
 ---
 
