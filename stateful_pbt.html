@@ -99,14 +99,22 @@ Teting Dropbox
 - Testing basic data scructures
 --
 
-- ?
---
+count: false
 
 - ?
 --
 
+count: false
+
 - ?
 --
+
+count: false
+
+- ?
+--
+
+count: false
 
 - Epic success stories
 
@@ -117,20 +125,32 @@ Teting Dropbox
 - Coming up with properties
 --
 
+count: false
+
 - Oracle properties
 --
+
+count: false
 
 - Generators
 --
 
+count: false
+
 - Shrinking
 --
+
+count: false
 
 - State handling in Erlang and Elixir
 --
 
+count: false
+
 - How to build models
 --
+
+count: false
 
 - Stateful test execution
 
@@ -146,6 +166,8 @@ forall list <- list(any())
 
 ---
 
+count: false
+
 # Coming up with properties
 
 ```Elixir
@@ -155,6 +177,8 @@ forall k <- range(0, length(list) - 1)
 ```
 
 ---
+
+count: false
 
 # Coming up with properties
 
@@ -186,33 +210,89 @@ for all inputs:
 - „”
 --
 
+count: false
 - „asdfasdf"
 --
 
+count: false
 - „2958!@#$%^tukgjsgt"
 --
 
+count: false
 - „gygftrsedfthuijkok87gf543"
 --
 
+count: false
 - „ql;kfejqoi4ja;lkdfa\nadsf ar4akjhdfa"
 --
 
+count: false
 
 # Shrinking example
 
 - "ql;kfejqoi4ja;lkdfa\nadsf ar4akjhdfa"
 --
 
+count: false
 - „ql;lkdfa\nadsf ar4ak"
 --
 
+count: false
 - „ql;fa\na"
 --
 
+count: false
 - „\n"
 
 ---
+
+# State management in Erlang and Elixir
+
+```Elixir
+def loop(state) do
+
+
+
+    loop(new_state)
+  end
+end
+```
+
+---
+
+count: false
+
+# State management in Erlang and Elixir
+
+```Elixir
+def loop(state) do
+  receive {command, caller_pid} ->
+    {:reply, result, new_state} = ...
+
+    loop(new_state)
+  end
+end
+```
+
+---
+
+count: false
+
+# State management in Erlang and Elixir
+
+```Elixir
+def loop(state) do
+  receive {command, caller_pid} ->
+    {:reply, result, new_state} = ...
+    send caller_pid result
+    loop(new_state)
+  end
+end
+```
+
+---
+
+count: false
 
 # State management in Erlang and Elixir
 
@@ -227,6 +307,8 @@ end
 ```
 
 --
+
+count: false
 
 # Actual logic
 
@@ -255,23 +337,37 @@ end
 - PESEL: Universal Electronic System for Registration of the Population
 --
 
+count: false
+
 - YYMMDDZZZXQ
 --
+
+count: false
 
 - <span style="color:red">YYMMDD</span>ZZZXQ <span style="color:red">90 01 01</span> 12345
 --
 
+count: false
+
 - YYMMDD<span style="color:red">ZZZX</span>Q 900101 <span=style:"color:red">1234</span> 5
 --
+
+count: false
 
 - even Xs for females, odd Xs for males 900101 123 <span style="color:red">4</span> 5
 --
 
+count: false
+
 - Q is a check digit
 --
 
+count: false
+
 - Caveat: for people born after 2000 we add 20 to month
 --
+
+count: false
 
 - 05<span style="color:red">21</span>0112345 means "born 01-01-2005"
 
@@ -318,6 +414,8 @@ end
 
 ---
 
+count: false
+
 # Commands
 
 ```Elixir
@@ -328,6 +426,8 @@ end
 ```
 
 ---
+
+count: false
 
 # Commands
 
@@ -353,6 +453,8 @@ end
 
 ---
 
+count: false
+
 # next_state
 
 ```Elixir
@@ -365,6 +467,8 @@ end
 ```
 
 ---
+
+count: false
 
 # next_state
 
@@ -400,14 +504,22 @@ Did it work?
 - search(<span style="color: red">p1</span>)
 --
 
+count: false
+
 - add(<span style="color: red">p2</span>, name1, surname1)
 --
+
+count: false
 
 - search(<span style="color: red">p3</span>)
 --
 
+count: false
+
 - add(<span style="color: red">p4</span>, name2, surname2)
 --
+
+count: false
 
 - ...
 
@@ -422,8 +534,11 @@ How do I make sure command sequences are meaningful?
 # Smarter commands
 
 - Search for existing patient
+
 - Serach missing patient
+
 - Add new patient
+
 - Add patient with PESEL that already exists
 
 ---
@@ -442,6 +557,8 @@ end
 ```
 
 ---
+
+count: false
 
 # Using state in generator
 
@@ -463,14 +580,22 @@ end
 - search non existent pesel p1
 --
 
+count: false
+
 - add patient pesel p2
 --
+
+count: false
 
 - search existing patient by pesel p2
 --
 
+count: false
+
 - add patient pesel p3 (let’s say that one is broken)
 --
+
+count: false
 
 - search existing patient by pesel p3 (this one should fail)
 
@@ -479,29 +604,46 @@ end
 # Shrinking
 
 - ~~search non existent pesel p1~~
+
 - add patient pesel p2
+
 - search existing patient by pesel p2
+
 - add patient pesel p3 (let’s say that one is broken)
+
 - search existing patient by pesel p3 (this one should fail)
 
 ---
 
+count: false
+
 # Shrinking
 
 - ~~search non existent pesel p1~~
+
 - add patient pesel p2
+
 - search existing patient by pesel p2
+
 - <span style="color: red">add patient pesel p3 (let’s say that one is broken)</span>
+
 - <span style="color: red">search existing patient by pesel p3 (this one should fail)</span>
 
+
 ---
+
+count: false
 
 # Shrinking
 
 - ~~search non existent pesel p1~~
+
 - ~~add patient pesel p2~~
+
 - ~~search existing patient by pesel p2~~
+
 - <span style="color: red">add patient pesel p3 (let’s say that one is broken)</span>
+
 - <span style="color: red">search existing patient by pesel p3 (this one should fail)</span>
 
 ---
@@ -509,7 +651,9 @@ end
 # Phases
 
 - Command generation: uses only model, needs to be deterministic, depends on precondition
+
 - Test execution uses generated calls with intermediate states for validations, depends more on postcondition
+
 - Shrinking executes the property many times with smaller examples: uses preconditions to make sure taking out commands makes sense
 
 ---
@@ -517,6 +661,7 @@ end
 # Summary
 
 - Epic success stories
+
 - Considerable upfront investment
 
 ---
