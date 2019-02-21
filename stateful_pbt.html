@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+     .image-50 img { width: 50%; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Stateful Property Based Testing
+
+Tomasz Kowal
+
+.image-50[![Company Logo](images/elixir-logo.png)]
+.image-50[![Company Logo](images/company-logo.png)]
+
+---
+
+# Common examples
+
+```elixir
+check all left <- string()
+          right <- string()
+          string = left <> right do
+
+  assert String.contains?(string, left)
+  assert String.contains?(string, right)
+end
+```
+
+[Lambda Days 2018 - José Valim- Introducing HDD: Hughes Driven Development](https://www.youtube.com/watch?v=78GRqQVt6ks)
+
+---
+
+# Common examples
+
+```elixir
+forall list <- list(any()) do
+  assert reverse(reverse(list)) == list
+end
+```
+
+---
+
+class: center
+
+# Why bother?
+
+.image-50.center[![Company Logo](images/quiviq-logo.jpeg)]
+
+Quiviq AUTOSAR tests for Volvo.
+
+[Experiences with QuickCheck:
+Testing the Hard Stuff and Staying Sane]( https://www.cs.tufts.edu/~nr/cs257/archive/john-hughes/quviq-testing.pdf)
+
+---
+
+class: center
+
+# Why bother?
+
+.image-50.center[![Company Logo](images/leveldb-logo.png)]
+
+Testing Level DB
+
+[QuickCheck A Silver Bullet for testing?](http://htmlpreview.github.io/?https://raw.github.com/strangeloop/lambdajam2013/master/slides/Norton-QuickCheck.html)
+
+---
+
+class: center
+
+# Why bother?
+
+.image-50.center[![Company Logo](images/dropbox-logo.png)]
+
+Teting Dropbox
+
+[John Hughes - The Mysteries of Dropbox (Lambda Days 2016)](https://www.youtube.com/watch?v=H18vxq-VsCk)
+
+---
+
+# Agenda
+
+- Coming up with properties
+--
+
+- Oracle properties
+--
+
+- Generators
+--
+
+- Shrinking
+--
+
+- State handling in Erlang and Elixir
+--
+
+- How to build models
+--
+
+- Stateful test execution
+
+---
+
+# Coming up with properties
+
+```Elixir
+forall list <- list(ingeger())
+forall k <- range(0, length(list) - 1)
+  Enum.at(list, k) == Enum.at(reverse(list), length(list) - k)
+```
+
+---
+
+class: center, middle
+
+# Properties of hasing function?
+
+---
+
+# Oracle properties
+
+```Elixir
+for all inputs:
+  our_algorithm(input) == oracle(input)
+```
+
+---
+
+# Generator example: string
+
+- „”
+--
+
+- „asdfasdf"
+--
+
+- „2958!@#$%^tukgjsgt"
+--
+
+- „gygftrsedfthuijkok87gf543"
+--
+
+- „ql;kfejqoi4ja;lkdfa\nadsf ar4akjhdfa"
+--
+
+
+# Shrinking example
+
+- "ql;kfejqoi4ja;lkdfa\nadsf ar4akjhdfa"
+--
+
+- „ql;lkdfa\nadsf ar4ak"
+--
+
+- „ql;fa\na"
+--
+
+- „\n"
+
+---
+
+# State management in Erlang and Elixir
+
+```Elixir
+def loop(state) do
+  receive {command, caller_pid} ->
+    {:reply, result, new_state} = handle_call(command, caller_pid, state)
+    send caller_pid result
+    loop(new_state)
+  end
+end
+```
+
+--
+
+# Actual logic
+
+```Elixir
+def handle_call(:some_command, caller_pid, state), do: …
+def handle_call(:other_command, caller_pid, state), do: …
+```
+
+- Transforms state s1 → s2
+- Calculates answer
+
+---
+
+# Stateful PBT
+
+```Elixir
+forall commands do
+  our_tested_system(commands) == model(commands)
+end
+```
+
+---
+
+# Putting it all together with an example
+
+- PESEL: Universal Electronic System for Registration of the Population
+--
+
+- YYMMDDZZZXQ
+--
+
+- 90010112345
+--
+
+- born: 01-01-1990
+--
+
+- even Xs for females, odd Xs for males
+--
+
+- Q is a check digit
+--
+
+- Caveat: for people born after 2000 we add 20 to month
+--
+
+- 05210112345 means "born 01-01-2005"
+
+---
+
+class: middle
+
+# Example system (patient database)
+
+```Elixir
+search_patient(pesel)
+add_patient(pesel, name, surname)```
+
+---
+
+class: middle
+
+# Model
+
+```Elixir
+%{pesel => {name, surname}}
+```
+
+---
+
+# Defining model
+
+- `command(state)`
+- `initial_state`
+- `next_state(state, _, command)`
+- `precondition(state, result, command)`
+- `postcondition(state, result, command)`
+
+---
+
+# Commands
+
+```Elixir
+def command(_state) do
+  oneof([{:call, PatientDB, :search, [pesel()]},
+         {:call, PatientDB, :add_patient, [pesel(), name(), surname()]}])
+end
+```
+
+---
+
+# next_state
+
+```Elixir
+def next_state(state, {:search, [pesel]}) do
+  state
+end
+def next_state(state, {:add_patient, [pesel, name, surname]}) do
+  Map.put(state, pesel, {name, surname})
+end
+```
+
+---
+
+class: center, middle
+
+# Precondition
+
+Does it make sense?
+
+---
+
+class: center, middle
+
+# Postcondition
+
+Did it work?
+
+---
+
+# Naive execution
+
+```Elixir
+search(p1)
+add(p2, name1, surname1)
+search(p3)
+add(p4, name2, surname2)
+...
+```
+
+---
+
+class: center, middle
+
+How do I make sure command sequences are meaningful?
+
+---
+
+# Smarter commands
+
+- Search for existing patient
+- Serach missing patient
+- Add new patient
+- Add patient with PESEL that already exists
+
+---
+
+# Using state in generator
+
+```Elixir
+def command(state) do
+  oneof([...
+         {:call, 
+          Patients, :search_existing,
+          [oneof(Map.keys(state)]}, ...])
+end
+```
+
+---
+
+# Guided execution
+
+- search non existent pesel p1
+--
+
+- add patient pesel p2
+--
+
+- search existing patient by pesel p2
+--
+
+- add patient pesel p3 (let’s say that one is broken)
+--
+
+- search existing patient by pesel p3 (this one should fail)
+
+---
+
+# Shrinking
+
+- ~~search non existent pesel p1~~
+- add patient pesel p2
+- search existing patient by pesel p2
+- add patient pesel p3 (let’s say that one is broken)
+- search existing patient by pesel p3 (this one should fail)
+
+---
+
+# Shrinking
+
+- ~~search non existent pesel p1~~
+- add patient pesel p2
+- search existing patient by pesel p2
+- <span style="color: red">add patient pesel p3 (let’s say that one is broken)</span>
+- <span style="color: red">search existing patient by pesel p3 (this one should fail)</span>
+
+---
+
+# Shrinking
+
+- ~~search non existent pesel p1~~
+- ~~add patient pesel p2~~
+- ~~search existing patient by pesel p2~~
+- <span style="color: red">add patient pesel p3 (let’s say that one is broken)</span>
+- <span style="color: red">search existing patient by pesel p3 (this one should fail)</span>
+
+---
+
+# Summing up: command generation
+
+- Pick a command
+- if precondition met - call next_state
+- else pick another command
+
+---
+
+# Summing up: Test execution
+
+- Run a command
+- if postcondition not met - fail the test
+- if postcondition met - call next_state and take next command
+
+---
+
+# Summing up: Shrinking
+
+- Take out a command
+- Make sure all preconditions are still valid (this doesn’t touch actual system)
+- Run the property on actual system
+- If still failing – continue shrkinking
+- If not – backtrack and try taking out something else
+
+---
+
+# Phases
+
+- Call generation: uses only model, needs to be deterministic, depends on precondition
+- Test execution uses generated calls with intermediate states for validations, depends more on postcondition
+- Shrinking executes the property many times with smaller examples: uses preconditions to make sure taking out commands makes sense
+
+---
+
+# Summary
+
+- Epic success stories
+- quite big upfront investment
+
+---
+
+class: center, middle
+
+.image-50.center[![Company Logo](images/fhproper.jpg)]
+
+---
+
+class: center, middle
+
+# Thank you
+
+Tomasz Kowal
+
+@snajper47
+
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
+
